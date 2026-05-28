@@ -8,6 +8,7 @@ import fitz
 from fastapi import UploadFile
 
 from config import settings
+from core.case_metadata import extract_case_metadata
 from core.normalizer import DocumentNormalizer, normalize_text
 from models.document import DocIndex, DocumentType, IndexList
 
@@ -120,7 +121,12 @@ async def index_documents(job_id: str, uploaded_files: list[UploadFile]) -> dict
             )
         )
 
-    index_list = IndexList(job_id=job_id, documents=documents)
+    case_metadata = extract_case_metadata(documents)
+    index_list = IndexList(
+        job_id=job_id,
+        documents=documents,
+        case_metadata=case_metadata,
+    )
     index_path.write_text(
         json.dumps(index_list.model_dump(), indent=2),
         encoding="utf-8",
@@ -179,7 +185,12 @@ async def index_documents_from_directory(job_id: str) -> dict:
             )
         )
 
-    index_list = IndexList(job_id=job_id, documents=documents)
+    case_metadata = extract_case_metadata(documents)
+    index_list = IndexList(
+        job_id=job_id,
+        documents=documents,
+        case_metadata=case_metadata,
+    )
     index_path.write_text(
         json.dumps(index_list.model_dump(), indent=2),
         encoding="utf-8",

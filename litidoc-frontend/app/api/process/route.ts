@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const FASTAPI_BASE_URL = "http://localhost:8000";
+import { proxyToFastApi } from "@/lib/server/fastapi";
 
 async function toNextResponse(response: Response): Promise<NextResponse> {
   const contentType = response.headers.get("content-type") ?? "";
@@ -18,11 +17,36 @@ async function toNextResponse(response: Response): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const resume = request.nextUrl.searchParams.get("resume") === "1";
+  const jobId = request.nextUrl.searchParams.get("job_id");
+
+  if (resume) {
+    if (!jobId) {
+      return NextResponse.json(
+        { error: "Missing required query parameter: job_id" },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const backendResponse = await proxyToFastApi(
+        `/resume/${encodeURIComponent(jobId)}`,
+        { method: "POST" },
+      );
+      return toNextResponse(backendResponse);
+    } catch (error) {
+      console.error("POST /api/process resume proxy error:", error);
+      return NextResponse.json(
+        { error: "Failed to resume job." },
+        { status: 503 },
+      );
+    }
+  }
+
   try {
     const formData = await request.formData();
 
-    // TODO: Add auth headers / request validation before forwarding.
-    const backendResponse = await fetch(`${FASTAPI_BASE_URL}/process`, {
+    const backendResponse = await proxyToFastApi("/process", {
       method: "POST",
       body: formData,
     });
@@ -49,19 +73,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // TODO: Add auth headers / request validation before forwarding.
-    const backendResponse = await fetch(
-      `${FASTAPI_BASE_URL}/status/${encodeURIComponent(jobId)}`,
-      {
-        method: "GET",
-      },
+    const backendResponse = await proxyToFastApi(
+      `/status/${encodeURIComponent(jobId)}?lite=1`,
+      { method: "GET" },
+      15_000,
     );
 
     return toNextResponse(backendResponse);
   } catch (error) {
     console.error("GET /api/process proxy error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch job status." },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error && error.name === "TimeoutError"
+        ? "Backend status check timed out. The server may be busy processing documents."
+        : "Backend temporarily unavailable. Retrying…";
+    return NextResponse.json({ error: message }, { status: 503 });
   }
 }

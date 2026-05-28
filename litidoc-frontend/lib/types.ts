@@ -16,12 +16,21 @@ export interface TimelineEvent {
   confidence: "High" | "Medium" | "Low";
 }
 
+export interface TimelineHighlight {
+  rank: number;
+  date: string;
+  label: string;
+  description?: string;
+  citation?: string;
+}
+
 export interface DamageItem {
   category: string;
   description: string;
   extractedSupport: string;
   citation: string;
   notes?: string;
+  amount?: number;
 }
 
 export interface CaseParties {
@@ -43,12 +52,14 @@ export interface LitiDocAnalysisResponse {
   currentStage: string;
   documentIndex: DocumentIndexItem[];
   timeline: TimelineEvent[];
+  timelineHighlights?: TimelineHighlight[];
   backgroundDraft: string;
   damageRegister: DamageItem[];
   nameInconsistencyNote?: string;
   extractedEvents?: number;
   damageCategories?: number;
   sourcesCited?: number;
+  excelSheetNames?: string[];
 }
 
 export type TabType = "timeline" | "background" | "documents" | "damages" | "exports";

@@ -20,6 +20,17 @@ class DocIndex(BaseModel):
     file_path: str
 
 
+class CaseMetadata(BaseModel):
+    case_name: str = ""
+    plaintiff: str = ""
+    defendant: str = ""
+    matter_type: str = ""
+    jurisdiction: str = ""
+    name_inconsistency_note: str | None = None
+    source_document: str | None = None
+
+
 class IndexList(BaseModel):
     job_id: str
     documents: list[DocIndex] = Field(default_factory=list)
+    case_metadata: CaseMetadata | None = None

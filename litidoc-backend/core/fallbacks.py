@@ -247,6 +247,27 @@ def _build_mock_classifications(job_id: str) -> dict:
     }
 
 
+def get_fallback_timeline_highlights(job_id: str, timeline: dict | None = None) -> dict:
+    """Build highlights from an existing or mock timeline without calling Claude."""
+    from stages.stage1b_timeline_highlights import summarize_timeline_highlights
+
+    if timeline is None:
+        timeline_path = _jobs_dir(job_id) / "timeline.json"
+        if timeline_path.exists():
+            timeline = json.loads(timeline_path.read_text(encoding="utf-8"))
+        else:
+            timeline = {
+                "job_id": job_id,
+                "events": [dict(event) for event in MOCK_TIMELINE_EVENTS],
+                "total_events": len(MOCK_TIMELINE_EVENTS),
+            }
+
+    result = summarize_timeline_highlights(job_id, timeline, use_heuristic_only=True)
+    result["fallback"] = True
+    _save_json(_jobs_dir(job_id) / "timeline_highlights.json", result)
+    return result
+
+
 def get_fallback_timeline(job_id: str) -> dict:
     """Return and persist a demo timeline when Stage 1 fails."""
     result = {

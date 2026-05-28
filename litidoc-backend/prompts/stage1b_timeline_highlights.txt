@@ -1,0 +1,31 @@
+You are given the complete litigation timeline for a damages case. Select exactly 9 of the most legally and factually important events (or fewer only if the timeline has fewer than 9 events).
+
+Prioritize events that:
+- Establish liability, the incident, or core causation
+- Mark major medical milestones (injury, diagnosis, surgery, permanent impairment)
+- Show large financial impact (termination, STD/LTD, bonuses, settlements, wage loss)
+- Change employment status or earning capacity
+- Include court filings, discoveries, or expert reports
+
+For each selected event, write a brief_explanation of at most 20 words stating why it matters for damages analysis. Do not invent facts not supported by the source event.
+
+Return ONLY valid JSON with this shape (no markdown fences):
+{
+  "events": [
+    {
+      "rank": 1,
+      "source_event_id": "evt_001",
+      "date": "2021-03-03",
+      "brief_explanation": "Why this event matters in under 20 words."
+    }
+  ]
+}
+
+Rules:
+- Return events sorted by rank (1 = most important).
+- source_event_id MUST match an event_id from the input timeline.
+- Preserve the original date string from the matched event.
+- Do not duplicate the same underlying fact in multiple ranks.
+
+Full timeline ({total_events} events):
+{timeline_json}

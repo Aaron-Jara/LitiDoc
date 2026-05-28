@@ -10,8 +10,11 @@ import ExportsTab from "./ExportsTab";
 
 interface ResultsTabsProps {
   data: LitiDocAnalysisResponse | null;
+  jobId: string | null;
   isAnalysisComplete: boolean;
   isRichAnalysisMode: boolean;
+  hasExcel?: boolean;
+  hasWord?: boolean;
 }
 
 const tabs: { id: TabType; label: string }[] = [
@@ -22,7 +25,14 @@ const tabs: { id: TabType; label: string }[] = [
   { id: "exports", label: "Exports" },
 ];
 
-export default function ResultsTabs({ data, isAnalysisComplete, isRichAnalysisMode }: ResultsTabsProps) {
+export default function ResultsTabs({
+  data,
+  jobId,
+  isAnalysisComplete,
+  isRichAnalysisMode,
+  hasExcel = false,
+  hasWord = false,
+}: ResultsTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("timeline");
 
   if (!isAnalysisComplete) {
@@ -46,13 +56,34 @@ export default function ResultsTabs({ data, isAnalysisComplete, isRichAnalysisMo
       case "documents":
         return <DocumentIndexTable documents={data.documentIndex} />;
       case "timeline":
-        return <TimelineTable events={data.timeline} isRichAnalysisMode={isRichAnalysisMode} />;
+        return (
+          <TimelineTable
+            events={data.timeline}
+            highlights={data.timelineHighlights}
+            isRichAnalysisMode={isRichAnalysisMode}
+          />
+        );
       case "background":
-        return <BackgroundDraft draft={data.backgroundDraft} isRichAnalysisMode={isRichAnalysisMode} />;
+        return (
+          <BackgroundDraft
+            draft={data.backgroundDraft}
+            jobId={jobId}
+            hasWord={hasWord}
+            isRichAnalysisMode={isRichAnalysisMode}
+          />
+        );
       case "damages":
         return <DamageRegisterTable damages={data.damageRegister} isRichAnalysisMode={isRichAnalysisMode} />;
       case "exports":
-        return <ExportsTab isRichAnalysisMode={isRichAnalysisMode} />;
+        return (
+          <ExportsTab
+            jobId={jobId}
+            isRichAnalysisMode={isRichAnalysisMode}
+            excelSheetNames={data.excelSheetNames}
+            hasExcel={hasExcel}
+            hasWord={hasWord}
+          />
+        );
       default:
         return null;
     }
