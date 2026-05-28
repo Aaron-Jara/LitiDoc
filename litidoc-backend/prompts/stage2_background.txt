@@ -1,0 +1,17 @@
+Write a neutral, third-person, past-tense Background section for an expert damages report.
+Use ONLY the timeline events provided below. Add no new information.
+Cite every factual claim inline using (Doc X.X, p. XX) format.
+
+Structure the response as JSON:
+{
+"introduction": "...",
+"incident_description": "...",
+"medical_treatment": "...",
+"employment_history": "...",
+"full_text": "... (concatenated)"
+}
+
+Timeline events (sorted chronologically):
+{timeline_json}
+
+Write 600-1200 words total. Be formal but readable. Each paragraph should have multiple citations.

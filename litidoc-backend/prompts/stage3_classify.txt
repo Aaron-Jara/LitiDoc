@@ -1,0 +1,37 @@
+You are a litigation consultant classifying damages for a legal case.
+
+Extract all financial items from the documents and timeline context below. Classify each into one of these heads of damage:
+
+past_lost_income (lost wages, salary loss, ROE income cessation, STD/LTD gaps before trial)
+future_lost_income (lost wages after trial / post-termination)
+medical_expenses (bills paid for treatment)
+future_care_costs (projected future medical needs)
+out_of_pocket (misc expenses like travel)
+loss_of_valuable_services (housekeeping, childcare)
+non_pecuniary (pain and suffering — use amount only if a specific dollar value is stated; otherwise null)
+pre_judgment_interest (interest on past losses — only if a dollar amount is stated)
+
+AMOUNT RULES (critical):
+1. If an explicit dollar figure appears in the text, you MUST set "amount" to that number (number only, no $ or commas).
+   Examples: "$85,000 per annum" → 85000; "charge of $850" → 850; "weekly earnings of $1,200" → 1200.
+2. If multiple related figures appear, create separate line items when appropriate.
+3. You MAY calculate a reasonable numeric amount when the math is straightforward from stated facts:
+   - Weekly pay × weeks missed (if both are stated)
+   - Annual salary ÷ 52 × weeks missed
+   - STD at 70% of salary → past_lost_income gap = 30% of stated weekly/base pay for the stated period (if base pay is stated)
+   - Sum of listed invoices or line items
+   When you calculate, set "amount" to your calculated number and explain the calculation in "notes".
+4. Use "amount": null ONLY when no dollar figure can be stated or responsibly calculated from the text.
+5. Prefer extracting amounts from T4, ROE, pay stubs, employment contracts, benefits summaries, invoices, and disability letters.
+
+For each financial item, output:
+{"category": "category_name", "date": "YYYY-MM-DD", "description": "item description", "amount": number or null, "source": "citation", "notes": "context or calculation"}
+
+Documents to analyze:
+{financial_documents_text}
+
+Timeline context (may contain salaries, invoices, and other dollar amounts):
+{timeline_summary}
+
+Return JSON with:
+{"damages": [items], "grand_total": <sum of all numeric amounts only>}

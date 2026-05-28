@@ -1,0 +1,12 @@
+Extract all factual events from the document chunk below. Each event must be explicitly stated - do not infer.
+
+For each event, output a JSON object:
+{"date": "YYYY-MM-DD or text description", "description": "what happened", "page": page_number}
+
+If no clear date, use "unspecified" but still extract the event.
+If ambiguous date (e.g., "late March"), keep the original text.
+
+Only extract events that are factual statements about what happened, not opinions or legal arguments.
+
+Document chunk:
+{chunk_text}

@@ -34,3 +34,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python
+venv/
+**/venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.Python
+
+# backend runtime / outputs
+litidoc-backend/storage/
+litidoc-backend/*.xlsx
+!litidoc-backend/schedule-sample.xlsx
