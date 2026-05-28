@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 249 250 251;
+    --foreground: 17 24 39;
+    --card: 255 255 255;
+    --card-foreground: 17 24 39;
+    --border: 229 231 235;
+    --muted: 243 244 246;
+    --muted-foreground: 107 114 128;
+  }
+
+  .dark {
+    --background: 17 24 39;
+    --foreground: 243 244 246;
+    --card: 31 41 55;
+    --card-foreground: 243 244 246;
+    --border: 55 65 81;
+    --muted: 31 41 55;
+    --muted-foreground: 156 163 175;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156 163 175) rgb(229 231 235);
+  }
+
+  .dark * {
+    scrollbar-color: rgb(107 114 128) rgb(31 41 55);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-800;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-400 dark:bg-gray-600;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-500;
+  }
+}
