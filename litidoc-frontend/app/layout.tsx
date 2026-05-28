@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "LitiDoc - Legal Document Processing",
-  description: "Upload, analyze, and track legal document processing in LitiDoc.",
+  title: "LitiDoc - AI Litigation Consulting Platform",
+  description: "Turn litigation case files into sourced timelines and damage schedules.",
 };
 
 export default function RootLayout({
@@ -18,10 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} min-h-screen bg-gray-900 font-sans text-gray-100 antialiased`}>
-        {children}
-      </body>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

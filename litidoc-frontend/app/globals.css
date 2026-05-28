@@ -1,54 +1,58 @@
 @import "tailwindcss";
 
-@layer base {
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --navy: #1e3a5f;
+  --navy-dark: #0f2744;
+  --slate: #64748b;
+  --slate-light: #94a3b8;
+  --blue-subtle: #3b82f6;
+  --blue-light: #dbeafe;
+  --green-subtle: #10b981;
+  --green-light: #d1fae5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
   :root {
-    --background: 249 250 251;
-    --foreground: 17 24 39;
-    --card: 255 255 255;
-    --card-foreground: 17 24 39;
-    --border: 229 231 235;
-    --muted: 243 244 246;
-    --muted-foreground: 107 114 128;
+    --background: #0f172a;
+    --foreground: #f1f5f9;
   }
+}
 
-  .dark {
-    --background: 17 24 39;
-    --foreground: 243 244 246;
-    --card: 31 41 55;
-    --card-foreground: 243 244 246;
-    --border: 55 65 81;
-    --muted: 31 41 55;
-    --muted-foreground: 156 163 175;
-  }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
-  body {
-    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100;
-    font-family: Arial, Helvetica, sans-serif;
-  }
+* {
+  box-sizing: border-box;
+}
 
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(156 163 175) rgb(229 231 235);
-  }
+/* Professional scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .dark * {
-    scrollbar-color: rgb(107 114 128) rgb(31 41 55);
-  }
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
 
-  *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
 
-  *::-webkit-scrollbar-track {
-    @apply bg-gray-200 dark:bg-gray-800;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-gray-400 dark:bg-gray-600;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500 dark:bg-gray-500;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
