@@ -150,6 +150,3 @@ Per job, artifacts are stored under `litidoc-backend/storage/jobs/{job_id}/`:
 - Backend logs show chunk counts, e.g. `chunks=17 max_concurrent=25`, useful when explaining parallel processing.
 - Sample schedule template: `litidoc-backend/schedule-sample.xlsx`.
 
-## License
-
-Hackathon / Lexiden project—add a license here if you open-source it.
