@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Header from "@/components/Header";
-import CaseSummary from "@/components/CaseSummary";
-import AnalysisAnimation from "@/components/AnalysisAnimation";
-import ResultsTabs from "@/components/ResultsTabs";
-import UploadCard from "@/components/UploadCard";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Footer from "@/components/marketing/Footer";
+import HeroSection from "@/components/marketing/HeroSection";
+import MarketingNav from "@/components/marketing/MarketingNav";
+import ProblemSection from "@/components/marketing/ProblemSection";
+import SolutionSection from "@/components/marketing/SolutionSection";
+import UploadSection from "@/components/marketing/UploadSection";
 import { fetchJobResults, uploadFiles, usePolling } from "@/lib/api";
-import { LitiDocAnalysisResponse } from "@/lib/types";
 import { classifyFiles, ClassifiedFile } from "@/lib/fileClassification";
+import { LitiDocAnalysisResponse } from "@/lib/types";
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -25,6 +26,10 @@ export default function Home() {
   const loadedJobIdRef = useRef<string | null>(null);
 
   const { status, loading: isPolling, error: pollError } = usePolling(jobId);
+
+  const scrollToUpload = useCallback(() => {
+    document.getElementById("upload")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   const handleFilesSelected = (files: File[]) => {
     setSelectedFiles(files);
@@ -117,80 +122,31 @@ export default function Home() {
   const hasWord = Boolean(status?.word_download_url ?? status?.background_word_count);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header
-        hasFiles={selectedFiles.length > 0}
-        isAnalysisRunning={isAnalysisRunning}
-        isAnalysisComplete={isAnalysisComplete}
-      />
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {!isAnalysisComplete ? (
-          <div className="max-w-3xl mx-auto">
-            <UploadCard
-              onFilesSelected={handleFilesSelected}
-              classifiedFiles={classifiedFiles}
-              isAnalysisComplete={isAnalysisComplete}
-            />
-
-            {classifiedFiles.length > 0 && !isAnalysisRunning && (
-              <div className="mt-6 text-center">
-                <p className="text-sm text-slate-500 mb-4">
-                  {selectedFiles.length} file(s) ready for backend analysis
-                </p>
-                <button
-                  onClick={handleAnalyzeCase}
-                  className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors"
-                >
-                  Analyze Case File
-                </button>
-              </div>
-            )}
-
-            {analysisError && (
-              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {analysisError}
-              </div>
-            )}
-
-            {(isAnalysisRunning || isLoadingResults) && (
-              <div className="mt-6">
-                <AnalysisAnimation
-                  status={status}
-                  pollError={pollError}
-                  loading={isPolling || isLoadingResults}
-                  isLoadingResults={isLoadingResults}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="w-full lg:w-[320px] flex-shrink-0 space-y-6">
-              <CaseSummary
-                data={analysisData}
-                documentCount={
-                  analysisData?.documentIndex.length ?? selectedFiles.length
-                }
-              />
-              <UploadCard
-                onFilesSelected={handleFilesSelected}
-                classifiedFiles={classifiedFiles}
-                isAnalysisComplete={isAnalysisComplete}
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <ResultsTabs
-                data={analysisData}
-                jobId={jobId}
-                isAnalysisComplete={isAnalysisComplete}
-                isRichAnalysisMode={isRichAnalysisMode}
-                hasExcel={hasExcel}
-                hasWord={hasWord}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <MarketingNav onStartClick={scrollToUpload} />
+      <main>
+        <HeroSection onStartClick={scrollToUpload} />
+        <ProblemSection />
+        <SolutionSection />
+        <UploadSection
+          classifiedFiles={classifiedFiles}
+          isAnalysisRunning={isAnalysisRunning}
+          isAnalysisComplete={isAnalysisComplete}
+          isLoadingResults={isLoadingResults}
+          isRichAnalysisMode={isRichAnalysisMode}
+          analysisData={analysisData}
+          analysisError={analysisError}
+          jobId={jobId}
+          status={status}
+          pollError={pollError}
+          isPolling={isPolling}
+          hasExcel={hasExcel}
+          hasWord={hasWord}
+          onFilesSelected={handleFilesSelected}
+          onAnalyzeCase={handleAnalyzeCase}
+        />
+      </main>
+      <Footer />
     </div>
   );
 }

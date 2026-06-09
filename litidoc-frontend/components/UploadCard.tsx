@@ -7,12 +7,14 @@ interface UploadCardProps {
   onFilesSelected: (files: File[]) => void;
   classifiedFiles: ClassifiedFile[];
   isAnalysisComplete: boolean;
+  compact?: boolean;
 }
 
 export default function UploadCard({
   onFilesSelected,
   classifiedFiles,
   isAnalysisComplete,
+  compact = false,
 }: UploadCardProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [folderHelperMessage, setFolderHelperMessage] = useState(false);
@@ -112,13 +114,15 @@ export default function UploadCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-2">Upload case documents</h2>
-        <p className="text-slate-600 max-w-xl mx-auto">
-          Drop files or upload pleadings, contracts, HR records, medical notes, benefits records, transcripts, and financial documents.
-        </p>
-      </div>
+    <div className={compact ? "" : "bg-white rounded-xl border border-slate-200 shadow-sm p-8"}>
+      {!compact && (
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-2">Upload case documents</h2>
+          <p className="text-slate-600 max-w-xl mx-auto">
+            Drop files or upload pleadings, contracts, HR records, medical notes, benefits records, transcripts, and financial documents.
+          </p>
+        </div>
+      )}
 
       <div
         onDragOver={handleDragOver}

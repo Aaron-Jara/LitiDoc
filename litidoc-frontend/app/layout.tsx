@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LitiDoc - AI Litigation Consulting Platform",
-  description: "Turn litigation case files into sourced timelines and damage schedules.",
+  title: "LitiDoc — AI Litigation Document Processing",
+  description:
+    "Turn 400+ pages of legal PDFs into sourced timelines, background sections, and Excel damage schedules in minutes.",
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
