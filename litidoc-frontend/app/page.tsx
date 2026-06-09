@@ -3,147 +3,143 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Footer from "@/components/marketing/Footer";
 import HeroSection from "@/components/marketing/HeroSection";
+import HowItWorksSection from "@/components/marketing/HowItWorksSection";
 import MarketingNav from "@/components/marketing/MarketingNav";
+import MetricsStrip from "@/components/marketing/MetricsStrip";
 import ProblemSection from "@/components/marketing/ProblemSection";
 import SolutionSection from "@/components/marketing/SolutionSection";
-import UploadSection from "@/components/marketing/UploadSection";
-import { fetchJobResults, uploadFiles, usePolling } from "@/lib/api";
-import { classifyFiles, ClassifiedFile } from "@/lib/fileClassification";
-import { LitiDocAnalysisResponse } from "@/lib/types";
+import UploadSection, {
+  type UploadPhase,
+} from "@/components/marketing/UploadSection";
+import { uploadFiles, usePolling } from "@/lib/api";
+
+const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
+
+function validatePdfFiles(files: File[]): string | null {
+  const pdfs = files.filter(
+    (file) =>
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"),
+  );
+
+  if (pdfs.length === 0) {
+    return "Please upload at least one PDF file.";
+  }
+
+  if (pdfs.length !== files.length) {
+    return "Only PDF files are accepted.";
+  }
+
+  const totalSize = pdfs.reduce((sum, file) => sum + file.size, 0);
+  if (totalSize > MAX_TOTAL_BYTES) {
+    return "Total upload size must be 500MB or less.";
+  }
+
+  return null;
+}
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [classifiedFiles, setClassifiedFiles] = useState<ClassifiedFile[]>([]);
-  const [isAnalysisRunning, setIsAnalysisRunning] = useState(false);
-  const [isAnalysisComplete, setIsAnalysisComplete] = useState(false);
-  const [analysisData, setAnalysisData] = useState<LitiDocAnalysisResponse | null>(
-    null,
-  );
-  const [isRichAnalysisMode, setIsRichAnalysisMode] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [isLoadingResults, setIsLoadingResults] = useState(false);
-  const loadedJobIdRef = useRef<string | null>(null);
+  const [phase, setPhase] = useState<UploadPhase>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { status, loading: isPolling, error: pollError } = usePolling(jobId);
+  const { status } = usePolling(jobId);
 
   const scrollToUpload = useCallback(() => {
     document.getElementById("upload")?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const handleFilesSelected = (files: File[]) => {
-    setSelectedFiles(files);
-    const classification = classifyFiles(files);
-    setClassifiedFiles(classification.files);
-    setIsRichAnalysisMode(false);
-    setIsAnalysisComplete(false);
-    setAnalysisData(null);
-    setJobId(null);
-    setAnalysisError(null);
-    loadedJobIdRef.current = null;
-    setIsLoadingResults(false);
-  };
-
-  const handleAnalyzeCase = async () => {
-    if (selectedFiles.length === 0) return;
-
-    setAnalysisError(null);
-    setIsAnalysisRunning(true);
-    setIsAnalysisComplete(false);
-    setAnalysisData(null);
-    setJobId(null);
-    loadedJobIdRef.current = null;
-    setIsLoadingResults(false);
-
-    try {
-      const newJobId = await uploadFiles(selectedFiles);
-      setJobId(newJobId);
-    } catch (error) {
-      setAnalysisError(
-        error instanceof Error ? error.message : "Failed to start analysis.",
-      );
-      setIsAnalysisRunning(false);
+  const clearProgressInterval = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
     }
   };
 
+  const resetUpload = useCallback(() => {
+    clearProgressInterval();
+    setSelectedFiles([]);
+    setJobId(null);
+    setPhase("idle");
+    setUploadProgress(0);
+    setError(null);
+  }, []);
+
+  const handleFilesSelected = useCallback(async (files: File[]) => {
+    const validationError = validatePdfFiles(files);
+    if (validationError) {
+      setError(validationError);
+      setPhase("error");
+      return;
+    }
+
+    clearProgressInterval();
+    setSelectedFiles(files);
+    setError(null);
+    setJobId(null);
+    setPhase("uploading");
+    setUploadProgress(0);
+
+    progressIntervalRef.current = setInterval(() => {
+      setUploadProgress((current) => Math.min(current + 4, 90));
+    }, 180);
+
+    try {
+      const newJobId = await uploadFiles(files);
+      clearProgressInterval();
+      setUploadProgress(100);
+      setJobId(newJobId);
+      setPhase("processing");
+    } catch (uploadError) {
+      clearProgressInterval();
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Failed to upload files.",
+      );
+      setPhase("error");
+    }
+  }, []);
+
   useEffect(() => {
-    if (!jobId || !status) {
+    if (!status) return;
+
+    if (status.status === "complete") {
+      setPhase("complete");
+      setError(null);
       return;
     }
 
     if (status.status === "error") {
-      setAnalysisError(status.error || status.message || "Processing failed.");
-      setIsAnalysisRunning(false);
-      setIsLoadingResults(false);
-      return;
+      setError(status.error || status.message || "Processing failed.");
+      setPhase("error");
     }
+  }, [status?.status, status?.error, status?.message]);
 
-    if (status.status !== "complete") {
-      return;
-    }
-
-    if (loadedJobIdRef.current === jobId) {
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingResults(true);
-    setAnalysisError(null);
-
-    (async () => {
-      try {
-        const data = await fetchJobResults(jobId);
-        if (cancelled) return;
-
-        loadedJobIdRef.current = jobId;
-        setAnalysisData(data);
-        setIsRichAnalysisMode(true);
-        setIsAnalysisComplete(true);
-        setIsAnalysisRunning(false);
-        setIsLoadingResults(false);
-      } catch (error) {
-        if (cancelled) return;
-        setAnalysisError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load analysis results.",
-        );
-        setIsAnalysisRunning(false);
-        setIsLoadingResults(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [jobId, status?.status]);
-
-  const hasExcel = Boolean(status?.download_url);
-  const hasWord = Boolean(status?.word_download_url ?? status?.background_word_count);
+  useEffect(() => {
+    return () => clearProgressInterval();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <MarketingNav onStartClick={scrollToUpload} />
       <main>
         <HeroSection onStartClick={scrollToUpload} />
+        <MetricsStrip />
         <ProblemSection />
         <SolutionSection />
+        <HowItWorksSection />
         <UploadSection
-          classifiedFiles={classifiedFiles}
-          isAnalysisRunning={isAnalysisRunning}
-          isAnalysisComplete={isAnalysisComplete}
-          isLoadingResults={isLoadingResults}
-          isRichAnalysisMode={isRichAnalysisMode}
-          analysisData={analysisData}
-          analysisError={analysisError}
+          selectedFiles={selectedFiles}
           jobId={jobId}
           status={status}
-          pollError={pollError}
-          isPolling={isPolling}
-          hasExcel={hasExcel}
-          hasWord={hasWord}
+          phase={phase}
+          uploadProgress={uploadProgress}
+          error={error}
           onFilesSelected={handleFilesSelected}
-          onAnalyzeCase={handleAnalyzeCase}
+          onRetry={resetUpload}
         />
       </main>
       <Footer />
